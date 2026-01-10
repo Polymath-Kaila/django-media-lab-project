@@ -6,6 +6,7 @@ from django.conf import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('upload/', include('uploads.urls')),
 ]
 # used in development only to serve media files
 if settings.DEBUG:
