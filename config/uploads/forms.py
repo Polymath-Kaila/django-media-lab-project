@@ -1,12 +1,12 @@
-from django import models
+from django import forms
 from .models import UploadFileModel, UploadedImageModel
 
-class FileUploadForm(models.Model):
+class FileUploadForm(forms.ModelForm):
     class Meta:
         model = UploadFileModel
         fields = ['title', 'file']
 
-class ImageUploadForm(models.Model):
+class ImageUploadForm(forms.ModelForm):
     class Meta:
         model = UploadedImageModel
         fields = ['title', 'image']
