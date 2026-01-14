@@ -54,3 +54,88 @@ urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 ```
 This is used in development env only for media serving.  
 In production media is served by a CDN, Nginx, S3.  
+
+## Data Models: Representing Files Correctly
+
+**File Model**:  
+```python
+class UploadFile(models.Model):
+    title = models.CharField(max_length=100)
+    file = models.FileField(upload_to='files/')
+    upload_at = models.DateTimeField(auto_now_add=True)
+```
+Key Points:  
++ `FileField` stores paths, not files
++ `upload_to` defines a subdirectory under `MEDIA_ROOT`
++ The database row references the file location
+
+
+**Image Model:**
+```python
+class UploadImage(models.Model):
+    title = models.CharField(max_length=100)
+    image = models.ImageField(upload_to='images/')
+
+```
+Key points:  
++ Images have additional validation
++ Pillow verifies dimensions and format
+
+---
+
+## Admin: Verifying the Pipeline Early
+We registered models in the admin panel to:  
++ Verify uploads without writing UI
++ Confirm file paths are correct
++ Debug storage issues early
+
+Admin is `a diagnostic tool` not a user interface.  
+
+---
+
+## Forms: The Validation Layer
+
+```python
+class FileUploadForm(forms.ModelForm):
+    class Meta:
+        model = UploadFile
+        fields = ['title','file']
+```
+Why forms matter:  
++ They validate file presence
++ They enforce required field
++ They protect against against malformed input
+
+Forms are the boundary between user input and our models.  
+
+---
+
+## Views: Orchestrating the Upload
+```python
+if request.method == 'POST':
+    form = FileUploadForm(request.POST, request.FILES)
+
+```
+This view:  
++ Receives input 
++ Delegates validation to the form
++ Saves only if valid
+
+## URL Design:
+We used a 2-level routing strategy.  
+
+Project-level(prefix):  
+```python
+path('upload', include('uploads.urls'))
+
+```
+App-level(endpoints):   
+```python
+path('file/', views.upload_file_view)
+
+```
+Resulting URL:  
+```python
+/upload/file
+```
+
